@@ -12,6 +12,9 @@ caption=pygame.display.set_caption("Space Hunter")
 
 def mainscreen():
     running=True
+    pygame.mixer.music.load("audio/mainscreen.mp3")
+    pygame.mixer.music.set_endevent(pygame.USEREVENT)
+    pygame.mixer.music.play()
     start=pygame.image.load("images/mainscreen.png")
     start=pygame.transform.scale(start,(screenX,screenY))
     while running:
@@ -21,6 +24,8 @@ def mainscreen():
             if event.type==pygame.KEYDOWN:
                 gamestart()
                 return
+            if event.type==pygame.USEREVENT:
+                pygame.mixer.music.play()
 
         gameWindow.blit(start,(0,0))
         pygame.display.flip()
@@ -32,7 +37,7 @@ def mainscreen():
 def gamestart():
     asteroid=pygame.image.load("images/asteroid.png")
     asteroid=pygame.transform.scale(asteroid,(35,35))
-
+    pygame.mixer.music.stop()
     bg=pygame.image.load("images/background.jpg")
     rocket1=pygame.image.load("images/rocket1.png")
     rocket1=pygame.transform.scale(rocket1,(75,75))
