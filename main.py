@@ -137,3 +137,4 @@ def gameover():
         clock.tick(60)
 
 mainscreen()
+pygame.quit()
