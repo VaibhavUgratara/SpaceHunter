@@ -9,6 +9,10 @@ gameWindow=pygame.display.set_mode((screenX,screenY))
 clock=pygame.time.Clock()
 caption=pygame.display.set_caption("Space Hunter")
 
+def text_screen(text,color,x,y,f_s=30):
+    font=pygame.font.SysFont(None,f_s)
+    screen_text=font.render(text,True,color)
+    gameWindow.blit(screen_text,[x,y])
 
 def mainscreen():
     running=True
@@ -28,6 +32,8 @@ def mainscreen():
                 pygame.mixer.music.play()
 
         gameWindow.blit(start,(0,0))
+        text_screen("Press any key to start",(255,255,255),screenX/2,screenY-screenY/5)
+        text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/2),screenY-screenY/7,20)
         pygame.display.flip()
         clock.tick(60)
         
@@ -137,6 +143,8 @@ def gameover():
                 return
         
         gameWindow.blit(over,(0,0))
+        text_screen("Press any key to start",(255,255,255),screenX/3,screenY-screenY/5)
+        text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/3),screenY-screenY/7,20)
         pygame.display.flip()
         clock.tick(60)
 
