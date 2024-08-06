@@ -40,6 +40,9 @@ def gamestart():
     asteroid=pygame.image.load("images/asteroid.png")
     asteroid=pygame.transform.scale(asteroid,(asteroid_size,asteroid_size))
     pygame.mixer.music.stop()
+    pygame.mixer.music.load("audio/gamesound.mp3")
+    pygame.mixer.music.set_endevent(pygame.USEREVENT)
+    pygame.mixer.music.play()
     bg=pygame.image.load("images/background.png")
     rocket1=pygame.image.load("images/rocket1.png")
     rocket1=pygame.transform.scale(rocket1,(rocket_size,rocket_size))
@@ -50,7 +53,7 @@ def gamestart():
 
     rocket=[rocket1,rocket2,rocket3]
     running=True
-    as_x=random.randint(0,screenX)
+    as_x=random.randint(0,screenX-40)
     as_y=0
 
     asteroid_list=[[as_x,as_y]]
@@ -70,6 +73,8 @@ def gamestart():
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
                 running=False
+            if event.type==pygame.USEREVENT:
+                pygame.mixer.music.play()
 
         keys=pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
@@ -98,7 +103,7 @@ def gamestart():
             as_rect[j].x=i[0]
             as_rect[j].y=i[1]
 
-        if(asteroid_list[len(asteroid_list)-1][1]>=screenY/4):
+        if(asteroid_list[len(asteroid_list)-1][1]>=screenY/3):
             as_X=random.randint(0,screenX-40)
             as_Y=-20
             asteroid_list.append([as_X,as_Y])
@@ -116,9 +121,10 @@ def gamestart():
         # pygame.draw.rect(gameWindow,(255,255,255),rocket_rect,2)
         pygame.display.flip()
 
-        clock.tick(70)
+        clock.tick(60)
 
 def gameover():
+    pygame.mixer.music.stop()
     running=True
     over=pygame.image.load("images\gameover.jpg")
     over=pygame.transform.scale(over,(screenX,screenY))
