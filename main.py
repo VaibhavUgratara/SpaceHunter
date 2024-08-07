@@ -42,22 +42,26 @@ def mainscreen():
 
 def gamestart():
     asteroid_size=35
-    rocket_size=75
+    rocket_size=90
     asteroid=pygame.image.load("images/asteroid.png")
     asteroid=pygame.transform.scale(asteroid,(asteroid_size,asteroid_size))
     pygame.mixer.music.stop()
     pygame.mixer.music.load("audio/gamesound.mp3")
     pygame.mixer.music.set_endevent(pygame.USEREVENT)
-    pygame.mixer.music.play()
     bg=pygame.image.load("images/background.png")
-    rocket1=pygame.image.load("images/rocket1.png")
-    rocket1=pygame.transform.scale(rocket1,(rocket_size,rocket_size))
-    rocket2=pygame.image.load("images/rocket2.png")
-    rocket2=pygame.transform.scale(rocket2,(rocket_size,rocket_size))
-    rocket3=pygame.image.load("images/rocket3.png")
-    rocket3=pygame.transform.scale(rocket3,(rocket_size,rocket_size))
-
-    rocket=[rocket1,rocket2,rocket3]
+    rocket=[]
+    for i in range(0,10):
+        url=f"images/rocket{i}.png"
+        rockload=pygame.image.load(url)
+        rockload=pygame.transform.scale(rockload,(rocket_size,rocket_size))
+        rocket.append(rockload)
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                running=False
+        gameWindow.fill((0,0,0))
+        text_screen("Loading...",(255,255,255),(screenX/2)-40,screenY/2)
+        pygame.display.flip()
+    pygame.mixer.music.play()
     running=True
     as_x=random.randint(0,screenX-40)
     as_y=0
@@ -71,7 +75,7 @@ def gamestart():
 
     while running:
         rocket_rect=rocket[r].get_rect()
-        rocket_rect.x=rocketX+11
+        rocket_rect.x=rocketX+15
         rocket_rect.y=screenY-80
         rocket_rect.w=50
         rocket_rect.h=60
@@ -91,11 +95,9 @@ def gamestart():
                 rocketX+=15
                 
         gameWindow.blit(bg,(0,0))
-        if(speed==3):
-            r+=1
-            if(r>2):
-                r=0
-            speed=0
+        r+=1
+        if(r>9):
+            r=0
 
         gameWindow.blit(rocket[r],(rocketX,screenY-90))
         as_rect=[]
@@ -123,7 +125,6 @@ def gamestart():
                 gameover()
                 return
 
-        speed+=1
         # pygame.draw.rect(gameWindow,(255,255,255),rocket_rect,2)
         pygame.display.flip()
 
