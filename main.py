@@ -9,31 +9,59 @@ gameWindow=pygame.display.set_mode((screenX,screenY))
 clock=pygame.time.Clock()
 caption=pygame.display.set_caption("Space Hunter")
 
+
+class Button:
+    def __init__(self,image,x,y,scale):
+        height=image.get_height()
+        width=image.get_width()
+        self.image=pygame.transform.scale(image,(int(width*scale),int(height*scale)))
+        self.rect=self.image.get_rect()
+        self.rect.topleft=(x,y)
+        self.clicked=False
+
+    def render_button(self):
+        action=False
+        mouse_pos=pygame.mouse.get_pos()
+        if self.rect.collidepoint(mouse_pos):
+            if pygame.mouse.get_pressed()[0]==1 and not(self.clicked):
+                action=True
+                self.clicked=True
+        if pygame.mouse.get_pressed()[0]==0:
+            self.clicked=False        
+        gameWindow.blit(self.image,(self.rect.x,self.rect.y))
+        return action
+
+
+
 def text_screen(text,color,x,y,f_s=30):
     font=pygame.font.SysFont(None,f_s)
     screen_text=font.render(text,True,color)
     gameWindow.blit(screen_text,[x,y])
 
+
+
 def mainscreen():
     running=True
+    start_img=pygame.image.load("images/start.png")
+    start_btn=Button(start_img,270,280,0.3)
     pygame.mixer.music.load("audio/mainscreen.mp3")
     pygame.mixer.music.set_endevent(pygame.USEREVENT)
     pygame.mixer.music.play()
     start=pygame.image.load("images/mainscreen.png")
     start=pygame.transform.scale(start,(screenX,screenY))
+    start_cl=False
     while running:
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
                 running=False
-            if event.type==pygame.KEYDOWN:
-                gamestart()
-                return
             if event.type==pygame.USEREVENT:
                 pygame.mixer.music.play()
-
+        if start_cl:
+            gamestart()
+            return
         gameWindow.blit(start,(0,0))
-        text_screen("Press any key to start",(255,255,255),screenX/2,screenY-screenY/5)
-        text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/2),screenY-screenY/7,20)
+        start_cl=start_btn.render_button()
+        text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/2 + 80),screenY-screenY/7,18)
         pygame.display.flip()
         clock.tick(60)
         
@@ -70,14 +98,13 @@ def gamestart():
     asteroid_velocity=3
 
     r=0
-    speed=0
     rocketX=250
 
     while running:
         rocket_rect=rocket[r].get_rect()
-        rocket_rect.x=rocketX+15
+        rocket_rect.x=rocketX+25
         rocket_rect.y=screenY-80
-        rocket_rect.w=50
+        rocket_rect.w=30
         rocket_rect.h=60
 
         for event in pygame.event.get():
@@ -135,17 +162,20 @@ def gameover():
     running=True
     over=pygame.image.load("images\gameover.jpg")
     over=pygame.transform.scale(over,(screenX,screenY))
+    start_img=pygame.image.load("images/start.png")
+    start_btn=Button(start_img,270,280,0.3)
+    start_cl=False
     while running:
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
                 running=False
-            if event.type==pygame.KEYDOWN:
-                gamestart()
-                return
         
         gameWindow.blit(over,(0,0))
-        text_screen("Press any key to start",(255,255,255),screenX/3,screenY-screenY/5)
-        text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/3),screenY-screenY/7,20)
+        text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/3),screenY/2 + 50,18)
+        if start_cl:
+            gamestart()
+            return
+        start_cl=start_btn.render_button()
         pygame.display.flip()
         clock.tick(60)
 
