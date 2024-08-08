@@ -1,5 +1,6 @@
 import pygame
 import random
+import sys
 pygame.init()
 
 screenX=700
@@ -53,12 +54,11 @@ def mainscreen():
     while running:
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
-                running=False
+                return 0
             if event.type==pygame.USEREVENT:
                 pygame.mixer.music.play()
         if start_cl:
-            gamestart()
-            return
+            return "Start"
         gameWindow.blit(start,(0,0))
         start_cl=start_btn.render_button()
         text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/2 + 80),screenY-screenY/7,18)
@@ -85,7 +85,7 @@ def gamestart():
         rocket.append(rockload)
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
-                running=False
+                return 0
         gameWindow.fill((0,0,0))
         text_screen("Loading...",(255,255,255),(screenX/2)-40,screenY/2)
         pygame.display.flip()
@@ -109,7 +109,7 @@ def gamestart():
 
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
-                running=False
+                return 0
             if event.type==pygame.USEREVENT:
                 pygame.mixer.music.play()
 
@@ -149,8 +149,7 @@ def gamestart():
 
         for i in as_rect:
             if(rocket_rect.colliderect(i)):
-                gameover()
-                return
+                return "End"
 
         # pygame.draw.rect(gameWindow,(255,255,255),rocket_rect,2)
         pygame.display.flip()
@@ -168,16 +167,28 @@ def gameover():
     while running:
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
-                running=False
+                return 0
         
         gameWindow.blit(over,(0,0))
         text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/3),screenY/2 + 50,18)
         if start_cl:
-            gamestart()
-            return
+            return "Start"
         start_cl=start_btn.render_button()
         pygame.display.flip()
         clock.tick(60)
 
-mainscreen()
+i=0
+while True:
+    if i==0:
+        j=mainscreen()
+    elif i==1:
+        j=gamestart()
+    elif i==2:
+        j=gameover()
+    if(j==0):
+        break
+    elif(j=="Start"):
+        i=1
+    elif(j=="End"):
+        i=2
 pygame.quit()
