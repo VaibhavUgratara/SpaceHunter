@@ -78,6 +78,8 @@ def gamestart():
     pygame.mixer.music.set_endevent(pygame.USEREVENT)
     bg=pygame.image.load("images/background.png")
     rocket=[]
+    btn_pause=pygame.image.load("images/pause.png")
+    pause_btn=Button(btn_pause,5,5,0.015)
     for i in range(0,10):
         url=f"images/rocket{i}.png"
         rockload=pygame.image.load(url)
@@ -99,7 +101,7 @@ def gamestart():
 
     r=0
     rocketX=250
-
+    gamePause=False
     while running:
         rocket_rect=rocket[r].get_rect()
         rocket_rect.x=rocketX+25
@@ -112,6 +114,15 @@ def gamestart():
                 return 0
             if event.type==pygame.USEREVENT:
                 pygame.mixer.music.play()
+            if event.type==pygame.KEYDOWN and gamePause:
+                gamePause=False
+                continue
+        if gamePause:
+            gameWindow.fill((0,0,0))
+            text_screen("Game Paused",(255,255,255),(screenX/2)-120,(screenY/2)-50,50)
+            text_screen("Press any key to resume",(255,255,255),(screenX/2)-120,(screenY/2)+10)
+            pygame.display.update()
+            continue
 
         keys=pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
@@ -152,6 +163,7 @@ def gamestart():
                 return "End"
 
         # pygame.draw.rect(gameWindow,(255,255,255),rocket_rect,2)
+        gamePause=pause_btn.render_button()
         pygame.display.flip()
 
         clock.tick(60)
@@ -177,6 +189,8 @@ def gameover():
         pygame.display.flip()
         clock.tick(60)
 
+
+#Some simple steps to prevent excess memory usage
 i=0
 while True:
     if i==0:
