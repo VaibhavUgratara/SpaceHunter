@@ -28,11 +28,9 @@ class Button:
                 action=True
                 self.clicked=True
         if pygame.mouse.get_pressed()[0]==0:
-            self.clicked=False        
+            self.clicked=False
         gameWindow.blit(self.image,(self.rect.x,self.rect.y))
         return action
-
-
 
 def text_screen(text,color,x,y,f_s=30):
     font=pygame.font.SysFont(None,f_s)
@@ -61,7 +59,8 @@ def mainscreen():
             return "Start"
         gameWindow.blit(start,(0,0))
         start_cl=start_btn.render_button()
-        text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/2 + 80),screenY-screenY/7,18)
+        text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/2 + 80),screenY-screenY/7,20)
+        text_screen("and spacebar to shoot",(255,255,255),(screenX/2 + 80),360,20)
         pygame.display.flip()
         clock.tick(60)
         
@@ -73,13 +72,17 @@ def gamestart():
     rocket_size=90
     asteroid=pygame.image.load("images/asteroid.png")
     asteroid=pygame.transform.scale(asteroid,(asteroid_size,asteroid_size))
+    laser=pygame.image.load("images/laser.png")
+    laser=pygame.transform.scale(laser,(15,30))
     pygame.mixer.music.stop()
     pygame.mixer.music.load("audio/gamesound.mp3")
     pygame.mixer.music.set_endevent(pygame.USEREVENT)
     bg=pygame.image.load("images/background.png")
     rocket=[]
     btn_pause=pygame.image.load("images/pause.png")
+    btn_play=pygame.image.load("images/play.png")
     pause_btn=Button(btn_pause,5,5,0.015)
+    play_btn=Button(btn_play,300,150,0.05)
     for i in range(0,10):
         url=f"images/rocket{i}.png"
         rockload=pygame.image.load(url)
@@ -102,25 +105,35 @@ def gamestart():
     r=0
     rocketX=250
     gamePause=False
+    pause_text=False
+    laser_list=[]
     while running:
         rocket_rect=rocket[r].get_rect()
         rocket_rect.x=rocketX+25
         rocket_rect.y=screenY-80
         rocket_rect.w=30
-        rocket_rect.h=60
+        rocket_rect.h=50
 
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
                 return 0
             if event.type==pygame.USEREVENT:
                 pygame.mixer.music.play()
-            if event.type==pygame.KEYDOWN and gamePause:
-                gamePause=False
-                continue
+            if event.type==pygame.KEYDOWN:
+                if event.key==pygame.K_SPACE:
+                    laser_list.append([rocket_rect.x+7,rocket_rect.y-20])
+                    
+
         if gamePause:
-            gameWindow.fill((0,0,0))
-            text_screen("Game Paused",(255,255,255),(screenX/2)-120,(screenY/2)-50,50)
-            text_screen("Press any key to resume",(255,255,255),(screenX/2)-120,(screenY/2)+10)
+            if not pause_text:
+                text_screen("Game Paused",(255,255,255),240,(screenY/2)-100,50)
+                pause_text=True
+            gamePause=play_btn.render_button()
+            if(gamePause):
+                gamePause=False
+                pause_text=False
+            else:
+                gamePause=True
             pygame.display.update()
             continue
 
@@ -154,6 +167,18 @@ def gamestart():
             as_Y=-20
             asteroid_list.append([as_X,as_Y])
 
+        laser_rect=[]
+
+        for i in laser_list:
+            gameWindow.blit(laser,i)
+            laser_rect.append(laser.get_rect())
+            i[1]-=10
+            j=laser_list.index(i)
+            laser_rect[j].x=i[0]
+            laser_rect[j].y=i[1]
+
+        if(len(laser_list)>0) and (laser_list[0][1]<-30):
+            laser_list.pop(0)
 
         if(asteroid_list[0][1]>screenY):
             asteroid_list.pop(0)
@@ -182,7 +207,7 @@ def gameover():
                 return 0
         
         gameWindow.blit(over,(0,0))
-        text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/3),screenY/2 + 50,18)
+        text_screen("Use left and right arrow keys to play and spacebar to shoot",(255,255,255),180,screenY/2 + 50,18)
         if start_cl:
             return "Start"
         start_cl=start_btn.render_button()
