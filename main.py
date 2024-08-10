@@ -37,7 +37,7 @@ def text_screen(text,color,x,y,f_s=30):
     screen_text=font.render(text,True,color)
     gameWindow.blit(screen_text,[x,y])
 
-
+score=0
 
 def mainscreen():
     running=True
@@ -62,18 +62,22 @@ def mainscreen():
         text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/2 + 80),screenY-screenY/7,20)
         text_screen("and spacebar to shoot",(255,255,255),(screenX/2 + 80),360,20)
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(30)
         
 
 
 
 def gamestart():
+    global score
+    score=0
     asteroid_size=35
     rocket_size=90
     asteroid=pygame.image.load("images/asteroid.png")
     asteroid=pygame.transform.scale(asteroid,(asteroid_size,asteroid_size))
     laser=pygame.image.load("images/laser.png")
     laser=pygame.transform.scale(laser,(15,30))
+    explosion=pygame.image.load("images/explosion.png")
+    explosion=pygame.transform.scale(explosion,(asteroid_size+2,asteroid_size+2))
     pygame.mixer.music.stop()
     pygame.mixer.music.load("audio/gamesound.mp3")
     pygame.mixer.music.set_endevent(pygame.USEREVENT)
@@ -162,13 +166,7 @@ def gamestart():
             as_rect[j].x=i[0]
             as_rect[j].y=i[1]
 
-        if(asteroid_list[len(asteroid_list)-1][1]>=screenY/3):
-            as_X=random.randint(0,screenX-40)
-            as_Y=-20
-            asteroid_list.append([as_X,as_Y])
-
         laser_rect=[]
-
         for i in laser_list:
             gameWindow.blit(laser,i)
             laser_rect.append(laser.get_rect())
@@ -177,17 +175,32 @@ def gamestart():
             laser_rect[j].x=i[0]
             laser_rect[j].y=i[1]
 
-        if(len(laser_list)>0) and (laser_list[0][1]<-30):
-            laser_list.pop(0)
-
-        if(asteroid_list[0][1]>screenY):
-            asteroid_list.pop(0)
-
         for i in as_rect:
             if(rocket_rect.colliderect(i)):
                 return "End"
+            for j in laser_rect:
+                if(j.colliderect(i)):
+                    score+=1
+                    gameWindow.blit(explosion,i)
+                    try:
+                        asteroid_list.pop(as_rect.index(i))
+                        laser_list.pop(laser_rect.index(j))
+                        laser_rect.pop(laser_rect.index(j))
+                    except:
+                        pass
 
         # pygame.draw.rect(gameWindow,(255,255,255),rocket_rect,2)
+        if len(asteroid_list)>0:
+            if(asteroid_list[len(asteroid_list)-1][1]>=screenY/3):
+                as_X=random.randint(0,screenX-40)
+                as_Y=-20
+                asteroid_list.append([as_X,as_Y])
+            if(asteroid_list[0][1]>screenY):
+                asteroid_list.pop(0)
+        else:
+            asteroid_list=[[random.randint(0,screenX-40),as_y]]
+        if(len(laser_list)>0) and (laser_list[0][1]<-30):
+            laser_list.pop(0)
         gamePause=pause_btn.render_button()
         pygame.display.flip()
 
@@ -212,7 +225,7 @@ def gameover():
             return "Start"
         start_cl=start_btn.render_button()
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(30)
 
 
 #Some simple steps to prevent excess memory usage
@@ -227,7 +240,8 @@ while True:
     if(j==0):
         break
     elif(j=="Start"):
-        i=1
+        i=1 
     elif(j=="End"):
         i=2
 pygame.quit()
+print(score)
