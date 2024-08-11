@@ -1,3 +1,6 @@
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT']='1'
+
 import pygame
 import random
 import sys
@@ -9,6 +12,11 @@ screenY=400
 gameWindow=pygame.display.set_mode((screenX,screenY))
 clock=pygame.time.Clock()
 caption=pygame.display.set_caption("Space Hunter")
+
+
+pygame.mixer.init()
+
+
 
 
 class Button:
@@ -68,6 +76,8 @@ def mainscreen():
 
 
 def gamestart():
+    laser_sound=pygame.mixer.Sound("audio/laser.mp3")
+    explosion_sound=pygame.mixer.Sound("audio/explosion.mp3")
     global score
     score=0
     asteroid_size=35
@@ -111,7 +121,11 @@ def gamestart():
     gamePause=False
     pause_text=False
     laser_list=[]
+    boost_time=0
     while running:
+        if boost_time==500:
+            asteroid_velocity+=0.5
+            boost_time=0
         rocket_rect=rocket[r].get_rect()
         rocket_rect.x=rocketX+25
         rocket_rect.y=screenY-80
@@ -126,6 +140,7 @@ def gamestart():
             if event.type==pygame.KEYDOWN:
                 if event.key==pygame.K_SPACE:
                     laser_list.append([rocket_rect.x+7,rocket_rect.y-20])
+                    laser_sound.play()
                     
 
         if gamePause:
@@ -165,6 +180,7 @@ def gamestart():
             j=asteroid_list.index(i)
             as_rect[j].x=i[0]
             as_rect[j].y=i[1]
+            # pygame.draw.rect(gameWindow,(255,255,255),(as_rect[j]),2)
 
         laser_rect=[]
         for i in laser_list:
@@ -173,7 +189,8 @@ def gamestart():
             i[1]-=10
             j=laser_list.index(i)
             laser_rect[j].x=i[0]
-            laser_rect[j].y=i[1]
+            laser_rect[j].y=i[1]+10
+            # pygame.draw.rect(gameWindow,(255,255,255),(laser_rect[j]),2)
 
         for i in as_rect:
             if(rocket_rect.colliderect(i)):
@@ -182,6 +199,7 @@ def gamestart():
                 if(j.colliderect(i)):
                     score+=1
                     gameWindow.blit(explosion,i)
+                    explosion_sound.play()
                     try:
                         asteroid_list.pop(as_rect.index(i))
                         laser_list.pop(laser_rect.index(j))
@@ -205,6 +223,7 @@ def gamestart():
         pygame.display.flip()
 
         clock.tick(60)
+        boost_time+=1
 
 def gameover():
     pygame.mixer.music.stop()
