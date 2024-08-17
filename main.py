@@ -1,9 +1,7 @@
-from os import environ
-environ['PYGAME_HIDE_SUPPORT_PROMPT']='1'
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT']='1'
+import pygame, random, json,string
 
-import pygame
-import random
-import sys
 pygame.init()
 
 screenX=700
@@ -16,6 +14,25 @@ caption=pygame.display.set_caption("Space Hunter")
 
 pygame.mixer.init()
 
+class HighScore:
+    def __init__(self):
+        if not (os.path.exists("score.json")):
+            with open("score.json","w") as highscore:
+                params={"HighScore":0}
+                json.dump(params,highscore)
+                highscore.close()
+        with open("score.json","r") as highscore:
+            self.data=json.load(highscore)
+            highscore.close()
+
+    def write_score(self,player_score):
+        if int(self.data["HighScore"]) < player_score:
+             with open("score.json","w") as highscore:
+                params={"HighScore":player_score}
+                json.dump(params,highscore)
+                highscore.close()
+                self.data["HighScore"]=player_score
+        
 
 
 
@@ -46,7 +63,7 @@ def text_screen(text,color,x,y,f_s=30):
     gameWindow.blit(screen_text,[x,y])
 
 score=0
-
+high_Score=HighScore()
 def mainscreen():
     running=True
     start_img=pygame.image.load("images/start.png")
@@ -70,15 +87,23 @@ def mainscreen():
         text_screen("Use left and right arrow keys to play",(255,255,255),(screenX/2 + 80),screenY-screenY/7,20)
         text_screen("and spacebar to shoot",(255,255,255),(screenX/2 + 80),360,20)
         pygame.display.flip()
-        clock.tick(30)
+        clock.tick(60)
         
 
 
 
 def gamestart():
+    for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                return 0
+            
+    gameWindow.fill((0,0,0))
+    text_screen("Loading...",(255,255,255),(screenX/2)-40,screenY/2)
+    pygame.display.flip()
+    global high_Score,score
+    # print(high_Score.data["HighScore"])
     laser_sound=pygame.mixer.Sound("audio/laser.mp3")
     explosion_sound=pygame.mixer.Sound("audio/explosion.mp3")
-    global score
     score=0
     asteroid_size=35
     rocket_size=90
@@ -102,12 +127,7 @@ def gamestart():
         rockload=pygame.image.load(url)
         rockload=pygame.transform.scale(rockload,(rocket_size,rocket_size))
         rocket.append(rockload)
-        for event in pygame.event.get():
-            if event.type==pygame.QUIT:
-                return 0
-        gameWindow.fill((0,0,0))
-        text_screen("Loading...",(255,255,255),(screenX/2)-40,screenY/2)
-        pygame.display.flip()
+
     pygame.mixer.music.play()
     running=True
     as_x=random.randint(0,screenX-40)
@@ -155,7 +175,7 @@ def gamestart():
                 gamePause=True
             pygame.display.update()
             continue
-
+        
         keys=pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             if not(rocketX<0):
@@ -165,6 +185,11 @@ def gamestart():
                 rocketX+=15
                 
         gameWindow.blit(bg,(0,0))
+        hi_score=string.Template("High-Score: $x")
+        if score>int(high_Score.data["HighScore"]):
+            hi_score=hi_score.substitute({"x":score})
+        else:
+            hi_score=hi_score.substitute({"x":high_Score.data["HighScore"]})
         r+=1
         if(r>9):
             r=0
@@ -220,12 +245,15 @@ def gamestart():
         if(len(laser_list)>0) and (laser_list[0][1]<-30):
             laser_list.pop(0)
         gamePause=pause_btn.render_button()
+        text_screen(f"Score: {score}",(255,255,255),60,10)
+        text_screen(f"{hi_score}",(255,255,255),screenX-150,10)
         pygame.display.flip()
 
-        clock.tick(60)
+        clock.tick(40)
         boost_time+=1
 
 def gameover():
+    global score,high_Score
     pygame.mixer.music.stop()
     running=True
     over=pygame.image.load("images\gameover.jpg")
@@ -233,6 +261,7 @@ def gameover():
     start_img=pygame.image.load("images/start.png")
     start_btn=Button(start_img,270,280,0.3)
     start_cl=False
+    high_Score.write_score(score)
     while running:
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
@@ -240,11 +269,12 @@ def gameover():
         
         gameWindow.blit(over,(0,0))
         text_screen("Use left and right arrow keys to play and spacebar to shoot",(255,255,255),180,screenY/2 + 50,18)
+        text_screen(f"Your score {score}",(255,255,255),(screenX/2) - 45,(screenY/2) +20 + 50,25)
         if start_cl:
             return "Start"
         start_cl=start_btn.render_button()
         pygame.display.flip()
-        clock.tick(30)
+        clock.tick(60)
 
 
 #Some simple steps to prevent excess memory usage
@@ -263,4 +293,3 @@ while True:
     elif(j=="End"):
         i=2
 pygame.quit()
-print(score)
