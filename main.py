@@ -161,7 +161,7 @@ def gamestart():
     enemy_laser=[]
 
     drawlaser=10
-    en_mechanism=True
+    en_mechanism=False
     while running:
         if boost_time==500:
             asteroid_velocity+=0.5
