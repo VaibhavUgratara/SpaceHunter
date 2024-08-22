@@ -1,7 +1,8 @@
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT']='1'
 import pygame, random, json,string
-
+import math
+import numpy as np
 pygame.init()
 
 screenX=700
@@ -127,7 +128,17 @@ def gamestart():
         rockload=pygame.image.load(url)
         rockload=pygame.transform.scale(rockload,(rocket_size,rocket_size))
         rocket.append(rockload)
-
+    
+    enemy=[]
+    e=0
+    for i in range (0,5):
+        url=f"images/enemy{i}.png"
+        en_load=pygame.image.load(url)
+        en_load=pygame.transform.scale(en_load,(40,40))
+        en_load=pygame.transform.rotate(en_load,180)
+        enemy.append(en_load)
+    en_laser=pygame.image.load("images/enemy_laser.png")
+    en_laser=pygame.transform.scale(en_laser,(15,30))
     pygame.mixer.music.play()
     running=True
     as_x=random.randint(0,screenX-40)
@@ -138,10 +149,19 @@ def gamestart():
 
     r=0
     rocketX=250
+    rocketY=screenY-90
     gamePause=False
     pause_text=False
     laser_list=[]
     boost_time=0
+
+    vY=30
+    enemyX=random.randint(20,screenX-50)
+    vX=enemyX
+    enemy_laser=[]
+
+    drawlaser=10
+    en_mechanism=True
     while running:
         if boost_time==500:
             asteroid_velocity+=0.5
@@ -193,8 +213,38 @@ def gamestart():
         r+=1
         if(r>9):
             r=0
+        e+=1
+        if(e>4):
+            e=0
 
         gameWindow.blit(rocket[r],(rocketX,screenY-90))
+
+        if en_mechanism:
+            sign=rocketX-enemyX
+            angle=(screenY-90)/(math.hypot(abs(sign),screenY-90))
+            angle=float(np.rad2deg(np.arccos(angle)))
+            vX=enemyX+11
+            if sign<0:
+                angle=-angle
+            vX=enemyX+(vY*(np.tan(np.deg2rad(angle))))
+            if drawlaser==10:
+                enemy_laser.append({"x":vX,"y":30,"angle":angle})
+                drawlaser=0
+            gameWindow.blit(pygame.transform.rotate(enemy[e],angle),(enemyX,10))
+
+            for i in enemy_laser:
+                if(i["y"]>screenY or i["x"]>screenX or i["x"]<0):
+                    enemy_laser.pop(enemy_laser.index(i))
+
+            for i in enemy_laser:
+                if i["angle"]<=30:
+                    gameWindow.blit(pygame.transform.rotate(en_laser,i["angle"]),(i["x"]+18,i["y"]))
+                else:
+                    gameWindow.blit(pygame.transform.rotate(en_laser,i["angle"]),(i["x"],i["y"]))
+                i["y"]+=10
+                if i["angle"]!=0:
+                    i["x"]=enemyX+(i["y"]*(np.tan(np.deg2rad(i["angle"]))))
+                
         as_rect=[]
         for i in asteroid_list:
             gameWindow.blit(asteroid,i)
@@ -246,11 +296,12 @@ def gamestart():
             laser_list.pop(0)
         gamePause=pause_btn.render_button()
         text_screen(f"Score: {score}",(255,255,255),60,10)
-        text_screen(f"{hi_score}",(255,255,255),screenX-150,10)
+        text_screen(f"{hi_score}",(255,255,255),screenX-180,10)
         pygame.display.flip()
 
         clock.tick(40)
         boost_time+=1
+        drawlaser+=1
 
 def gameover():
     global score,high_Score
