@@ -65,6 +65,23 @@ def text_screen(text,color,x,y,f_s=30):
 
 score=0
 high_Score=HighScore()
+
+
+
+def get_angle(rocketX,enemyX):
+    sign=rocketX-enemyX
+    # getting the cosine value
+    angle=(screenY-90)/(math.hypot(abs(sign),screenY-90))
+    #getting angle in degrees from cosine
+    angle=float(np.rad2deg(np.arccos(angle)))
+    if sign<0:
+        #when rocket is in left side of ship the sign of angle is reversed
+        angle=-angle
+    return angle
+
+
+
+
 def mainscreen():
     running=True
     start_img=pygame.image.load("images/start.png")
@@ -155,19 +172,23 @@ def gamestart():
     laser_list=[]
     boost_time=0
 
-    vY=30
-    enemyX=random.randint(100,screenX-100)
-    vX=enemyX
+    enemyX=0
     enemy_laser=[]
 
     drawlaser=10
     shooting_speed=20
-    en_mechanism=True
+    en_mechanism=False
     health=100
+    enemy_health=100
+    enemy_rect=[]
     while running:
         if boost_time==500:
             asteroid_velocity+=0.5
             boost_time=0
+            if not(en_mechanism):
+                en_mechanism=True
+                enemy_health=100
+                enemyX=random.randint(200,screenX-200)
         rocket_rect=rocket[r].get_rect()
         rocket_rect.x=rocketX+25
         rocket_rect.y=screenY-80
@@ -221,19 +242,21 @@ def gamestart():
 
         gameWindow.blit(rocket[r],(rocketX,screenY-90))
 
+
         if en_mechanism:
-            sign=rocketX-enemyX
-            angle=(screenY-90)/(math.hypot(abs(sign),screenY-90))
-            angle=float(np.rad2deg(np.arccos(angle)))
-            vX=enemyX+11
-            if sign<0:
-                angle=-angle
-            vX=enemyX+(vY*(np.tan(np.deg2rad(angle))))
+            angle=get_angle(rocketX,enemyX)
             if drawlaser==shooting_speed:
-                enemy_laser.append({"x":vX,"y":30,"angle":angle})
+                vX=enemyX+11
+                vY=30
+                vX=enemyX+(vY*(np.tan(np.deg2rad(angle))))
+                enemy_laser.append({"x":vX,"y":vY,"angle":angle})
                 drawlaser=0
             gameWindow.blit(pygame.transform.rotate(enemy[e],angle),(enemyX,10))
-
+            text_screen(f"{enemy_health}",(255, 253, 110),enemyX,40,15)
+            enemy_rect=enemy[e].get_rect()
+            enemy_rect.x=enemyX
+            enemy_rect.y=10
+            
             for i in enemy_laser:
                 if(i["y"]>screenY or i["x"]>screenX or i["x"]<0):
                     enemy_laser.pop(enemy_laser.index(i))
@@ -259,6 +282,7 @@ def gamestart():
                     ind=en_laser_rect.index(i)
                     enemy_laser.pop(ind)
                     continue
+            drawlaser+=1
 
         as_rect=[]
         for i in asteroid_list:
@@ -296,6 +320,13 @@ def gamestart():
                         laser_rect.pop(laser_rect.index(j))
                     except:
                         pass
+        for i in laser_rect:
+            try:
+                if i.colliderect(enemy_rect):
+                    laser_list.pop(laser_rect.index(i))
+                    enemy_health-=10
+            except:
+                pass
 
         # pygame.draw.rect(gameWindow,(255,255,255),rocket_rect,2)
         if len(asteroid_list)>0:
@@ -305,6 +336,7 @@ def gamestart():
                 asteroid_list.append([as_X,as_Y])
             if(asteroid_list[0][1]>screenY):
                 asteroid_list.pop(0)
+                score-=1
         else:
             asteroid_list=[[random.randint(0,screenX-40),as_y]]
         if(len(laser_list)>0) and (laser_list[0][1]<-30):
@@ -315,11 +347,18 @@ def gamestart():
         text_screen(f"Ship-Health: {health}",(255,255,255),20,screenY-20,20)
         pygame.display.flip()
 
+        if enemy_health==0:
+            if en_mechanism:
+                en_mechanism=False
+                score+=10
+                explosion_sound.play()
+                enemy_laser=[]
+
         if health==0:
             return "End"
         clock.tick(40)
         boost_time+=1
-        drawlaser+=1
+        
 
 def gameover():
     global score,high_Score
