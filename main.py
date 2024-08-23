@@ -156,12 +156,14 @@ def gamestart():
     boost_time=0
 
     vY=30
-    enemyX=random.randint(20,screenX-50)
+    enemyX=random.randint(100,screenX-100)
     vX=enemyX
     enemy_laser=[]
 
     drawlaser=10
-    en_mechanism=False
+    shooting_speed=20
+    en_mechanism=True
+    health=100
     while running:
         if boost_time==500:
             asteroid_velocity+=0.5
@@ -227,7 +229,7 @@ def gamestart():
             if sign<0:
                 angle=-angle
             vX=enemyX+(vY*(np.tan(np.deg2rad(angle))))
-            if drawlaser==10:
+            if drawlaser==shooting_speed:
                 enemy_laser.append({"x":vX,"y":30,"angle":angle})
                 drawlaser=0
             gameWindow.blit(pygame.transform.rotate(enemy[e],angle),(enemyX,10))
@@ -236,15 +238,28 @@ def gamestart():
                 if(i["y"]>screenY or i["x"]>screenX or i["x"]<0):
                     enemy_laser.pop(enemy_laser.index(i))
 
+            en_laser_rect=[]
             for i in enemy_laser:
                 if i["angle"]<=30:
                     gameWindow.blit(pygame.transform.rotate(en_laser,i["angle"]),(i["x"]+18,i["y"]))
+                    i["x"]+=18
                 else:
                     gameWindow.blit(pygame.transform.rotate(en_laser,i["angle"]),(i["x"],i["y"]))
+                en_laser_rect.append(en_laser.get_rect())
+                j=enemy_laser.index(i)
+                en_laser_rect[j].x=i["x"]
+                en_laser_rect[j].y=i["y"]
                 i["y"]+=10
                 if i["angle"]!=0:
                     i["x"]=enemyX+(i["y"]*(np.tan(np.deg2rad(i["angle"]))))
                 
+            for i in en_laser_rect:
+                if(rocket_rect.colliderect(i)):
+                    health-=5
+                    ind=en_laser_rect.index(i)
+                    enemy_laser.pop(ind)
+                    continue
+
         as_rect=[]
         for i in asteroid_list:
             gameWindow.blit(asteroid,i)
@@ -297,8 +312,11 @@ def gamestart():
         gamePause=pause_btn.render_button()
         text_screen(f"Score: {score}",(255,255,255),60,10)
         text_screen(f"{hi_score}",(255,255,255),screenX-180,10)
+        text_screen(f"Ship-Health: {health}",(255,255,255),20,screenY-20,20)
         pygame.display.flip()
 
+        if health==0:
+            return "End"
         clock.tick(40)
         boost_time+=1
         drawlaser+=1
