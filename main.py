@@ -134,7 +134,14 @@ def gamestart():
     pygame.mixer.music.stop()
     pygame.mixer.music.load("audio/gamesound.mp3")
     pygame.mixer.music.set_endevent(pygame.USEREVENT)
-    bg=pygame.image.load("images/background.png")
+
+    bg=[]
+    for i in range(0,18):
+        url=f"images/background{i}.gif"
+        bg.append(pygame.image.load(url))
+        bg[i]=pygame.transform.scale(bg[i],(screenX,screenY))
+    b=0
+    # bg=pygame.image.load("images/background.png")
     rocket=[]
     btn_pause=pygame.image.load("images/pause.png")
     btn_play=pygame.image.load("images/play.png")
@@ -176,19 +183,22 @@ def gamestart():
     enemy_laser=[]
 
     drawlaser=10
-    shooting_speed=20
+    shooting_speed=22
     en_mechanism=False
     health=100
     enemy_health=100
     enemy_rect=[]
     while running:
         if boost_time==500:
-            asteroid_velocity+=0.5
+            if asteroid_velocity<10:
+                asteroid_velocity+=0.5
             boost_time=0
             if not(en_mechanism):
                 en_mechanism=True
                 enemy_health=100
                 enemyX=random.randint(200,screenX-200)
+                if shooting_speed>=12:
+                    shooting_speed-=2
         rocket_rect=rocket[r].get_rect()
         rocket_rect.x=rocketX+25
         rocket_rect.y=screenY-80
@@ -227,7 +237,8 @@ def gamestart():
             if not(rocketX>screenX-rocket_size):
                 rocketX+=15
                 
-        gameWindow.blit(bg,(0,0))
+        gameWindow.blit(bg[b],(0,0))
+        # gameWindow.blit(bg,(0,0))
         hi_score=string.Template("High-Score: $x")
         if score>int(high_Score.data["HighScore"]):
             hi_score=hi_score.substitute({"x":score})
@@ -275,6 +286,8 @@ def gamestart():
                 i["y"]+=10
                 if i["angle"]!=0:
                     i["x"]=enemyX+(i["y"]*(np.tan(np.deg2rad(i["angle"]))))
+                else:
+                    i["x"]=enemyX
                 
             for i in en_laser_rect:
                 if(rocket_rect.colliderect(i)):
@@ -353,18 +366,22 @@ def gamestart():
                 score+=10
                 explosion_sound.play()
                 enemy_laser=[]
+                drawlaser=shooting_speed-5
 
         if health==0:
             return "End"
         clock.tick(40)
         boost_time+=1
+        b+=1
+        if b==18:
+            b=0
         
 
 def gameover():
     global score,high_Score
     pygame.mixer.music.stop()
     running=True
-    over=pygame.image.load("images\gameover.jpg")
+    over=pygame.image.load("images/gameover.jpg")
     over=pygame.transform.scale(over,(screenX,screenY))
     start_img=pygame.image.load("images/start.png")
     start_btn=Button(start_img,270,280,0.3)
