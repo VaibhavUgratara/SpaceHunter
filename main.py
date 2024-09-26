@@ -89,7 +89,7 @@ def mainscreen():
     pygame.mixer.music.load("audio/mainscreen.mp3")
     pygame.mixer.music.set_endevent(pygame.USEREVENT)
     pygame.mixer.music.play()
-    start=pygame.image.load("images/mainscreen.png")
+    start=pygame.image.load("images/mainscreen.PNG")
     start=pygame.transform.scale(start,(screenX,screenY))
     start_cl=False
     while running:
@@ -252,7 +252,7 @@ def gamestart():
             e=0
 
         gameWindow.blit(rocket[r],(rocketX,screenY-90))
-
+        
 
         if en_mechanism:
             angle=get_angle(rocketX,enemyX)
@@ -357,7 +357,21 @@ def gamestart():
         gamePause=pause_btn.render_button()
         text_screen(f"Score: {score}",(255,255,255),60,10)
         text_screen(f"{hi_score}",(255,255,255),screenX-180,10)
-        text_screen(f"Ship-Health: {health}",(255,255,255),20,screenY-20,20)
+        if(health>90):
+            health_col=(0,255,0)
+        elif(health>80):
+            health_col=(0,200,0)
+        elif(health>70):
+            health_col=(0,128,0)
+        elif(health>50):
+            health_col=(255,255,0)
+        elif(health>30):
+            health_col=(255,165,0)
+        else:
+            health_col=(255,0,0)
+        pygame.draw.rect(gameWindow,health_col,[10,screenY-23,health*1.5,15])
+        pygame.draw.rect(gameWindow,(255,255,255),[10,screenY-23,150,15],2)
+        # text_screen(f"Ship-Health: {health}",(0,0,255),20,screenY-20,17)
         pygame.display.flip()
 
         if enemy_health==0:
