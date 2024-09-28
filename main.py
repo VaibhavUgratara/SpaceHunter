@@ -12,8 +12,11 @@ gameWindow=pygame.display.set_mode((screenX,screenY))
 clock=pygame.time.Clock()
 caption=pygame.display.set_caption("Space Hunter")
 
-
 pygame.mixer.init()
+
+gameover_sound=pygame.mixer.Sound("audio/gameover.mp3")
+laser_sound=pygame.mixer.Sound("audio/laser.mp3")
+explosion_sound=pygame.mixer.Sound("audio/explosion.mp3")
 
 class HighScore:
     def __init__(self):
@@ -75,13 +78,13 @@ def get_angle(rocketX,enemyX):
     #getting angle in degrees from cosine
     angle=float(np.rad2deg(np.arccos(angle)))
     if sign<0:
-        #when rocket is in left side of ship the sign of angle is reversed
+        #sign denotes the direction of enemy ship
         angle=-angle
     return angle
 
 
 
-
+#Game mainscreen
 def mainscreen():
     running=True
     start_img=pygame.image.load("images/start.png")
@@ -109,8 +112,10 @@ def mainscreen():
         
 
 
-
+#When game starts
 def gamestart():
+
+    #loading game resources
     for event in pygame.event.get():
             if event.type==pygame.QUIT:
                 return 0
@@ -119,9 +124,7 @@ def gamestart():
     text_screen("Loading...",(255,255,255),(screenX/2)-40,screenY/2)
     pygame.display.flip()
     global high_Score,score
-    # print(high_Score.data["HighScore"])
-    laser_sound=pygame.mixer.Sound("audio/laser.mp3")
-    explosion_sound=pygame.mixer.Sound("audio/explosion.mp3")
+    
     score=0
     asteroid_size=35
     rocket_size=90
@@ -141,7 +144,6 @@ def gamestart():
         bg.append(pygame.image.load(url))
         bg[i]=pygame.transform.scale(bg[i],(screenX,screenY))
     b=0
-    # bg=pygame.image.load("images/background.png")
     rocket=[]
     btn_pause=pygame.image.load("images/pause.png")
     btn_play=pygame.image.load("images/play.png")
@@ -171,6 +173,12 @@ def gamestart():
     asteroid_list=[[as_x,as_y]]
     asteroid_velocity=3
 
+    scoreboard=pygame.image.load('images/scoreboard.png')
+    scoreboard=pygame.transform.scale(scoreboard,(120,60))
+
+    hScoreboard=pygame.image.load('images/hiscoreboard.png')
+    hScoreboard=pygame.transform.scale(hScoreboard,(120,60))
+
     r=0
     rocketX=250
     rocketY=screenY-90
@@ -188,6 +196,10 @@ def gamestart():
     health=100
     enemy_health=100
     enemy_rect=[]
+    hi_score=high_Score.data["HighScore"]
+
+
+    #game running status-> OK
     while running:
         if boost_time==500:
             if asteroid_velocity<10:
@@ -215,7 +227,7 @@ def gamestart():
                     laser_list.append([rocket_rect.x+7,rocket_rect.y-20])
                     laser_sound.play()
                     
-
+        #game pause state
         if gamePause:
             if not pause_text:
                 text_screen("Game Paused",(255,255,255),240,(screenY/2)-100,50)
@@ -238,12 +250,9 @@ def gamestart():
                 rocketX+=15
                 
         gameWindow.blit(bg[b],(0,0))
-        # gameWindow.blit(bg,(0,0))
-        hi_score=string.Template("High-Score: $x")
-        if score>int(high_Score.data["HighScore"]):
-            hi_score=hi_score.substitute({"x":score})
-        else:
-            hi_score=hi_score.substitute({"x":high_Score.data["HighScore"]})
+        
+        if score>hi_score:
+            hi_score=score
         r+=1
         if(r>9):
             r=0
@@ -253,7 +262,7 @@ def gamestart():
 
         gameWindow.blit(rocket[r],(rocketX,screenY-90))
         
-
+        #enemy ship shooting logic
         if en_mechanism:
             angle=get_angle(rocketX,enemyX)
             if drawlaser==shooting_speed:
@@ -261,6 +270,7 @@ def gamestart():
                 vY=30
                 vX=enemyX+(vY*(np.tan(np.deg2rad(angle))))
                 enemy_laser.append({"x":vX,"y":vY,"angle":angle})
+                laser_sound.play()
                 drawlaser=0
             gameWindow.blit(pygame.transform.rotate(enemy[e],angle),(enemyX,10))
             text_screen(f"{enemy_health}",(255, 253, 110),enemyX,40,15)
@@ -279,6 +289,7 @@ def gamestart():
                     i["x"]+=18
                 else:
                     gameWindow.blit(pygame.transform.rotate(en_laser,i["angle"]),(i["x"],i["y"]))
+                
                 en_laser_rect.append(en_laser.get_rect())
                 j=enemy_laser.index(i)
                 en_laser_rect[j].x=i["x"]
@@ -297,6 +308,8 @@ def gamestart():
                     continue
             drawlaser+=1
 
+
+        #other game mechanics
         as_rect=[]
         for i in asteroid_list:
             gameWindow.blit(asteroid,i)
@@ -307,7 +320,6 @@ def gamestart():
             j=asteroid_list.index(i)
             as_rect[j].x=i[0]
             as_rect[j].y=i[1]
-            # pygame.draw.rect(gameWindow,(255,255,255),(as_rect[j]),2)
 
         laser_rect=[]
         for i in laser_list:
@@ -317,7 +329,6 @@ def gamestart():
             j=laser_list.index(i)
             laser_rect[j].x=i[0]
             laser_rect[j].y=i[1]+10
-            # pygame.draw.rect(gameWindow,(255,255,255),(laser_rect[j]),2)
 
         for i in as_rect:
             if(rocket_rect.colliderect(i)):
@@ -341,7 +352,6 @@ def gamestart():
             except:
                 pass
 
-        # pygame.draw.rect(gameWindow,(255,255,255),rocket_rect,2)
         if len(asteroid_list)>0:
             if(asteroid_list[len(asteroid_list)-1][1]>=screenY/3):
                 as_X=random.randint(0,screenX-40)
@@ -355,8 +365,10 @@ def gamestart():
         if(len(laser_list)>0) and (laser_list[0][1]<-30):
             laser_list.pop(0)
         gamePause=pause_btn.render_button()
-        text_screen(f"Score: {score}",(255,255,255),60,10)
-        text_screen(f"{hi_score}",(255,255,255),screenX-180,10)
+        gameWindow.blit(scoreboard,(50,0))
+        gameWindow.blit(hScoreboard,(screenX-150,0))
+        text_screen(f"{score}",(255,255,255),97,30)
+        text_screen(f"{hi_score}",(255,255,255),screenX-110,30)
         if(health>90):
             health_col=(0,255,0)
         elif(health>80):
@@ -371,7 +383,6 @@ def gamestart():
             health_col=(255,0,0)
         pygame.draw.rect(gameWindow,health_col,[10,screenY-23,health*1.5,15])
         pygame.draw.rect(gameWindow,(255,255,255),[10,screenY-23,150,15],2)
-        # text_screen(f"Ship-Health: {health}",(0,0,255),20,screenY-20,17)
         pygame.display.flip()
 
         if enemy_health==0:
@@ -384,14 +395,18 @@ def gamestart():
 
         if health==0:
             return "End"
-        clock.tick(40)
+
+        clock.tick(60) #-> FPS set to 60
+
         boost_time+=1
         b+=1
         if b==18:
             b=0
         
-
+#Screen after game ends
 def gameover():
+    
+    gameover_sound.play()
     global score,high_Score
     pygame.mixer.music.stop()
     running=True
