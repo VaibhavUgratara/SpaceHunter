@@ -1,7 +1,6 @@
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT']='1'
-import pygame, random, json,string
-import math
+import pygame, random, json, math
 import numpy as np
 pygame.init()
 
@@ -14,7 +13,7 @@ caption=pygame.display.set_caption("Space Hunter")
 
 pygame.mixer.init()
 
-gameover_sound=pygame.mixer.Sound("audio/gameover.mp3")
+#normal gamesounds
 laser_sound=pygame.mixer.Sound("audio/laser.mp3")
 explosion_sound=pygame.mixer.Sound("audio/explosion.mp3")
 
@@ -405,10 +404,9 @@ def gamestart():
         
 #Screen after game ends
 def gameover():
-    
-    gameover_sound.play()
+    pygame.mixer.music.load("audio/gameover.mp3")
+    pygame.mixer.music.play()
     global score,high_Score
-    pygame.mixer.music.stop()
     running=True
     over=pygame.image.load("images/gameover.jpg")
     over=pygame.transform.scale(over,(screenX,screenY))
