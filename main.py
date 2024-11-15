@@ -170,7 +170,7 @@ def gamestart():
     as_y=0
 
     asteroid_list=[[as_x,as_y]]
-    asteroid_velocity=3
+    asteroid_velocity=1
 
     scoreboard=pygame.image.load('images/scoreboard.png')
     scoreboard=pygame.transform.scale(scoreboard,(120,60))
@@ -190,7 +190,7 @@ def gamestart():
     enemy_laser=[]
 
     drawlaser=10
-    shooting_speed=22
+    shooting_speed=30
     en_mechanism=False
     health=100
     enemy_health=100
@@ -293,7 +293,7 @@ def gamestart():
                 j=enemy_laser.index(i)
                 en_laser_rect[j].x=i["x"]
                 en_laser_rect[j].y=i["y"]
-                i["y"]+=10
+                i["y"]+=8
                 if i["angle"]!=0:
                     i["x"]=enemyX+(i["y"]*(np.tan(np.deg2rad(i["angle"]))))
                 else:
